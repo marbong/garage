@@ -1,0 +1,152 @@
+def label = "hotel_interface-${UUID.randomUUID().toString()}"
+
+def notifyStarted() {
+    slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+}
+
+def notifySuccessful() {
+    slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+}
+
+def notifyFailed() {
+  slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+}
+podTemplate(label: label, 
+	containers: [
+	  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
+	  containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat'),
+	  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.0', command: 'cat', ttyEnabled: true),
+	  containerTemplate(name: 'argo-cd-tools', image: 'argoproj/argo-cd-tools:latest', ttyEnabled: true, command: 'cat', args: '', envVars:[envVar(key: 'GIT_SSH_COMMAND', value: 'ssh -o StrictHostKeyChecking=no')] )
+	],
+	volumes: [
+	    hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
+	    hostPathVolume(hostPath: '/root/.m2', mountPath: '/root/.m2')
+	    ]
+	) {
+
+    // dateformatting
+	//def dateFormat = new SimpleDateFormat("yyyyMMddHHmm")
+    //def date = new Date()
+    //def date_tag = dateFormat.format(date)
+	
+	
+	node(label) {
+	try {
+		
+	  
+	  stage('Get Source') {
+	    git credentialsId: 'gitlab-auth', url: 'http://169.56.70.68:10080/aib2b-group/hotel_front'
+	  }
+
+	  def props = readProperties  file:'deployment/pipeline.properties'
+	  def tag = VersionNumber (versionNumberString: '${BUILD_DATE_FORMATTED, "yyyyMMdd"}-develop-${BUILDS_TODAY}') //version info. need to install plug in at Jenkins
+	  def gitSrc = props['gitSrc']
+	  def dockerRegistry = props['dockerRegistry']
+	  def image = props['image']
+	  def deployment = props['deployment']
+	  def service = props['service']
+	  def selector = props['selector']
+	  def namespace = props['namespace']
+      def argocdAppPrefix = props['argocdAppPrefix']
+      props['deployRepoUrl']
+      //def deployRepoUrl = '169.56.70.68:10080/aib2b-group/hotel_front_config.git'  //deploy
+	  def deployRepoUrl = props['deployRepoUrl']
+	    
+	  stage('Build Maven project') {
+		container('maven') {
+			sh "mvn -f pom.xml -B clean package -Dmaven.test.skip=true"
+		}
+	  }
+/*
+	  stage('Inspection Code') {
+		container('maven') {
+			sh "mvn -f pom.xml sonar:sonar \
+				  -Dsonar.projectKey=hotel_front \
+				  -Dsonar.host.url=http://169.56.70.69:30957 \
+				  -Dsonar.login=a226500617135f07139050a6a134a1cd80902b05"
+		}
+	  }
+*/
+
+	  stage('Build Docker image') {
+		container('docker') {
+		  docker.withRegistry("${dockerRegistry}", 'registry-credentials') {
+			sh "docker build -f Dockerfile -t ${image}:${tag} ."
+			sh "docker push ${image}:${tag}"
+			sh "docker tag ${image}:${tag} ${image}:latest"
+			sh "docker push ${image}:latest"
+		  }
+		}
+	  }
+/*
+	  stage( 'Clean Up Existing Deployments' ) {
+		container('kubectl') {
+		  withCredentials([[$class: 'UsernamePasswordMultiBinding',
+							  credentialsId: 'registry-credentials',
+							  usernameVariable: 'DOCKER_HUB_USER',
+							  passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+			  
+			  sh "kubectl delete deployments -n ${namespace} --selector=app=${selector}"
+			  sh "kubectl delete -n ${namespace} -f ${deployment}"
+		  }
+		}
+	  }
+
+	  stage( 'Deploy to Cluster' ) {
+		container('kubectl') {
+		  withCredentials([[$class: 'UsernamePasswordMultiBinding',
+							  credentialsId: 'registry-credentials',
+							  usernameVariable: 'DOCKER_HUB_USER',
+							  passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+			  
+			  sh "kubectl apply -n ${namespace} -f ${deployment}"
+			  sh "sleep 5"
+			  sh "kubectl apply -n ${namespace} -f ${service}"
+		  }
+		}
+	  }
+*/
+
+    def env1 = "dev"
+    stage( "Deploy ${env1}" ) {
+      container('argo-cd-tools') {
+        println("Deploying to ${argocdAppPrefix}")
+          dir("deployment-${env1}-${tag}") {
+            withCredentials([usernamePassword(credentialsId: 'gitlab-auth', usernameVariable: 'username', passwordVariable: 'password')]) {
+              sh "git config --global user.name 'jinbo heo'"
+              sh "git config --global user.email 'jinboheo@gmail.com'"
+              sh "git config --global http.sslVerify false"
+              git credentialsId: 'gitlab-auth', url:"http://${deployRepoUrl}"
+              sh "cp ./templates/front-deploy.yaml ./${env1}/front-deploy.yaml && sed -i s%IMAGE_TAG_PLACEHOLDER%${tag}% ./${env1}/front-deploy.yaml && git add * && git commit -m 'update image for ${env1} for app commit ${tag}' && git push http://$username:$password@${deployRepoUrl} --all"
+            }
+            }
+        }
+    }  
+    
+    stage( "Approval before deploy to Production" ){
+        input 'Deploy to Production?'
+    }
+    
+    def env2 = "prod"
+    stage( "Deploy ${env2}" ) {
+      container('argo-cd-tools') {
+        println("Deploying to ${argocdAppPrefix}")
+          dir("deployment-${env2}-${tag}") {
+            withCredentials([usernamePassword(credentialsId: 'gitlab-auth', usernameVariable: 'username', passwordVariable: 'password')]) {
+              sh "git config --global user.name 'jinbo heo'"
+              sh "git config --global user.email 'jinboheo@gmail.com'"
+              sh "git config --global http.sslVerify false"
+              git credentialsId: 'gitlab-auth', url:"http://${deployRepoUrl}"
+              sh "cp ./templates/front-deploy.yaml ./${env2}/front-deploy.yaml && sed -i s%IMAGE_TAG_PLACEHOLDER%${tag}% ./${env2}/front-deploy.yaml && git add * && git commit -m 'update image for ${env2} for app commit ${tag}' && git push http://$username:$password@${deployRepoUrl} --all"
+            }
+            }
+        }
+    }  
+
+	 notifySuccessful()
+	  } catch(e) {
+        currentBuild.result = "FAILED"
+        notifyFailed()
+    } 
+  }
+}

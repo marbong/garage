@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 'hotel-information'
+  labels:
+    app: 'hotel-information'
+spec:
+  selector:
+    matchLabels:
+      app: 'hotel-information'
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: 'hotel-information'
+    spec:
+      containers:
+        - name: 'hotel-information'
+          image: devcluster.icp:8500/aib2b/hotel_information:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080

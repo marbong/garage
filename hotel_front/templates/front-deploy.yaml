@@ -1,0 +1,22 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: 'hotel-front'
+  labels:
+    app: 'hotel-front'
+spec:
+  selector:
+    matchLabels:
+      app: 'hotel-front'
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: 'hotel-front'
+    spec:
+      containers:
+      - name: 'hotel-front'
+        image: devcluster.icp:8500/aib2b/hotel_front:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080

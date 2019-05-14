@@ -1,0 +1,63 @@
+logging:
+ pattern:
+  console: "%d %-5level %logger : %msg%n"
+ level:
+  org.springframework: INFO
+  org.hibernate: DEBUG
+
+# Database
+spring:
+ datasource:
+  url: jdbc:postgresql://169.56.70.78:30432/aib2b
+  username: aib2b
+  password: aib2b
+ jpa:
+  hibernate:
+   ddl-auto: update
+  properties:
+   hibernate:
+    show_sql: true
+    format_sql: true
+  database: postgresql
+  database-platform: org.hibernate.dialect.PostgreSQLDialect  
+
+ # Redis
+ redis:
+ # host: 169.56.70.78
+  host: redis-cluster-svc-aib2b.aib2b
+  port: 6379
+  lettuce:
+   pool:
+    max-active: 7
+    max-idle: 7
+    min-idle: 2
+   password: aib2b!
+  cluster:
+   nodes:
+#    - 10.1.41.251:6379
+#    - 10.1.71.125:6379
+#    - 10.1.249.39:6379
+#    - 10.1.71.94:6379
+#    - 10.1.249.48:6379
+#    - 10.1.184.107:6379
+#    - redis-cluster-aib2b-0:6379
+#    - redis-cluster-aib2b-1:6379
+#    - redis-cluster-aib2b-2:6379
+#    - redis-cluster-aib2b-3:6379
+#    - redis-cluster-aib2b-4:6379
+#    - redis-cluster-aib2b-5:6379
+# - redis-cluster-svc-ai2b2.aib2b:32489
+#   - 169.56.70.68:32489
+    - redis-cluster-svc-aib2b.aib2b:6379
+   maxRedirects: 3
+ #KAFKA
+ kafka:
+  bootstrap-servers: bootstrap:9092
+#bootstrap-servers: http://169.56.70.69:30482
+#bootstrap-servers: bootstrap.kafka.svc.cluster.local:9092
+app:
+ topic:
+  front: aib2b
+  end: aib2bEnd
+ group-id: console-consumer-42405
+

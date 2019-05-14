@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Built-By: kth
+Build-Jdk: 11.0.2
+Implementation-Title: hotel_interface
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: kt
+Implementation-URL: https://projects.spring.io/spring-boot/#/spring-boot
+ -starter-parent/hotel_interface
+Created-By: Maven Integration for Eclipse
+

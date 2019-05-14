@@ -1,0 +1,24 @@
+o package 설치
+npm install --save axios  babel-polyfill chartist echarts echarts-wordcloud jwt-decode node-sass resize-detector  sass-loader sweetalert2 vue-analytics  vue-axios vue-chartist vue-echarts-v3 vuex vuex-router-sync @babel/preset-env
+
+npm audit fix
+
+o dockerize 참조
+https://shekhargulati.com/2019/01/18/dockerizing-a-vue-js-application/
+
+docker build -t kgpark88/aib2b-frontend:1.1.1 .
+
+docker run -it -p 80:80 --rm --name aib2b-frontend kgpark88/aib2b-frontend:1.0.0
+
+
+kubectl delete -f deploy/ 
+kubectl apply -f deploy/ 
+kubectl get pod
+kubectl get svc
+
+kubectl exec -it vue-774f6bc98-6cpwk /bin/sh
+
+cd /usr/share/nginx/html
+
+sudo cp -r . /var/www/html/.
+

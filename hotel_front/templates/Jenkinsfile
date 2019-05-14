@@ -1,0 +1,106 @@
+def label = "hotel_interface-${UUID.randomUUID().toString()}"
+
+def notifyStarted() {
+    slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+}
+
+def notifySuccessful() {
+    slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+}
+
+def notifyFailed() {
+  slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+}
+podTemplate(label: label, 
+	containers: [
+	  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
+	  containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat'),
+	  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.0', command: 'cat', ttyEnabled: true)
+	],
+	volumes: [
+	    hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
+	    hostPathVolume(hostPath: '/root/.m2', mountPath: '/root/.m2')
+	    ]
+	) {
+
+	
+	node(label) {
+	try {
+		
+	  
+	  stage('Get Source') {
+		git "http://gitlab.169.56.70.69.nip.io/AI_B2B/Hotel_Front.git"
+	  }
+
+	  def props = readProperties  file:'hotel_front/deployment/pipeline.properties'
+	  /*def tag = VersionNumber (versionNumberString: '${BUILD_DATE_FORMATTED, "yyyyMMdd"}-develop-${BUILDS_TODAY}')*/
+	  def tag = props['version']
+	  def gitSrc = props['gitSrc']
+	  def dockerRegistry = props['dockerRegistry']
+	  def image = props['image']
+	  def deployment = props['deployment']
+	  def service = props['service']
+	  def selector = props['selector']
+	  def namespace = props['namespace']
+
+	    
+	  stage('Build Maven project') {
+		container('maven') {
+			sh "mvn -f hotel_front/pom.xml -B clean package -Dmaven.test.skip=true"
+		}
+	  }
+/*
+	  stage('Inspection Code') {
+		container('maven') {
+			sh "mvn -f hotel_front/pom.xml sonar:sonar \
+				  -Dsonar.projectKey=hotel_front \
+				  -Dsonar.host.url=http://169.56.70.69:30957 \
+				  -Dsonar.login=a226500617135f07139050a6a134a1cd80902b05"
+		}
+	  }
+*/
+
+	  stage('Build Docker image') {
+		container('docker') {
+		  docker.withRegistry("${dockerRegistry}", 'registry-credentials') {
+			sh "docker build -f hotel_front/Dockerfile -t ${image}:${tag} ."
+		/*	sh "docker push ${image}:${tag}"*/
+			sh "docker tag ${image}:${tag} ${image}:latest"
+			sh "docker push ${image}:latest"
+		  }
+		}
+	  }
+
+	  stage( 'Clean Up Existing Deployments' ) {
+		container('kubectl') {
+		  withCredentials([[$class: 'UsernamePasswordMultiBinding',
+							  credentialsId: 'registry-credentials',
+							  usernameVariable: 'DOCKER_HUB_USER',
+							  passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+			  
+			  sh "kubectl delete deployments -n ${namespace} --selector=app=${selector}"
+			  sh "kubectl delete -n ${namespace} -f hotel_front/${deployment}"
+		  }
+		}
+	  }
+
+	  stage( 'Deploy to Cluster' ) {
+		container('kubectl') {
+		  withCredentials([[$class: 'UsernamePasswordMultiBinding',
+							  credentialsId: 'registry-credentials',
+							  usernameVariable: 'DOCKER_HUB_USER',
+							  passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+			  
+			  sh "kubectl apply -n ${namespace} -f hotel_front/${deployment}"
+			  sh "sleep 5"
+			  sh "kubectl apply -n ${namespace} -f hotel_front/${service}"
+		  }
+		}
+	  }
+	 notifySuccessful()
+	  } catch(e) {
+        currentBuild.result = "FAILED"
+        notifyFailed()
+    } 
+  }
+}

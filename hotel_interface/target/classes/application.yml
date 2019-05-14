@@ -1,0 +1,40 @@
+logging:
+ level:
+  org:
+   springframework: DEBUG
+
+# Database
+spring:
+ datasource:
+  url: jdbc:postgresql://169.56.70.78:30432/aib2b
+  username: aib2b
+  password: aib2b
+ # Redis
+ redis:
+  host: 169.56.70.78
+  port: 30379
+  password: aib2b!
+#  cluster:
+#   nodes:
+#    - redis-cluster-aib2b-0.redis-cluster-svc-aib2b.aib2b.svc.devcluster.local:6379
+#    - redis-cluster-aib2b-1.redis-cluster-svc-aib2b.aib2b.svc.devcluster.local:6379
+#    - redis-cluster-aib2b-2.redis-cluster-svc-aib2b.aib2b.svc.devcluster.local:6379
+#    - redis-cluster-aib2b-3.redis-cluster-svc-aib2b.aib2b.svc.devcluster.local:6379
+#    - redis-cluster-aib2b-4.redis-cluster-svc-aib2b.aib2b.svc.devcluster.local:6379
+#    - redis-cluster-aib2b-5.redis-cluster-svc-aib2b.aib2b.svc.devcluster.local:6379
+#   maxRedirects: 3
+#KAFKA
+ kafka:
+  bootstrap-servers: bootstrap:9092
+#bootstrap-servers: http://169.56.70.69:30482
+#bootstrap-servers: bootstrap.kafka.svc.cluster.local:9092
+app:
+  topic:
+    front: aib2b
+    end: aib2bEnd
+  group-id: console-consumer-42405
+#MOCK API
+mock:
+  api:
+    url: http://169.56.70.69:31339
+    path : /api/mock/request

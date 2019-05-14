@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: 'hotel-view'
+  labels:
+    name: 'hotel-view'
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: 'hotel-view'
+    spec:
+      containers:
+      - name: 'hotel-view'
+        image: devcluster.icp:8500/aib2b/hotel_view:latest
+      restartPolicy: Always
