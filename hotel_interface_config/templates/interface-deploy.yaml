@@ -1,0 +1,24 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: 'hotel-interface'
+  labels:
+    app: 'hotel-interface'
+spec:
+  selector:
+    matchLabels:
+      app: 'hotel-interface'
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: 'hotel-interface'
+    spec:
+      containers:
+      - name: 'hotel-interface'
+        image: devcluster.icp:8500/aib2b/hotel_interface:IMAGE_TAG_PLACEHOLDER
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+    imagePullSecrets:
+    - name: regcred
