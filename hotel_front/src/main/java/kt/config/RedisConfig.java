@@ -44,7 +44,7 @@ public class RedisConfig {
         LOG.info("CALLED  RedisConnectionFactory---------------------");
         return connectionFactory;
     }
-    
+
     @Bean
     public RedisTemplate redisTemplate() {
         RedisTemplate redisTemplate = new RedisTemplate<>();
@@ -55,8 +55,8 @@ public class RedisConfig {
         LOG.info("CALLED  RedisTemplate---------------------");
         return redisTemplate;
     }
-        
- 
+
+
 
 /*    @Bean
     public RedisCacheManager redisCacheManager() {

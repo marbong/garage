@@ -36,6 +36,7 @@ podTemplate(label: label,
 	  
 	  stage('Get Source') {
 	    git credentialsId: 'gitlab-auth', url: 'http://169.56.70.68:10080/aib2b-group/hotel_front'
+	   println("1 - Deploying target:  $target")
 	  }
 
 	  def props = readProperties  file:'deployment/pipeline.properties'
@@ -51,10 +52,12 @@ podTemplate(label: label,
       props['deployRepoUrl']
       //def deployRepoUrl = '169.56.70.68:10080/aib2b-group/hotel_front_config.git'  //deploy
 	  def deployRepoUrl = props['deployRepoUrl']
-	    
+	  def env1 = "$target"
+	      
 	  stage('Build Maven project') {
+	   println("2-Deploying target:  $env1")
 		container('maven') {
-			sh "mvn -f pom.xml -B clean package -Dmaven.test.skip=true"
+			sh "mvn -f pom.xml -B clean package -Dmaven.test.skip=true -Dspring.profiles.active:${target}"
 		}
 	  }
 /*
@@ -69,9 +72,10 @@ podTemplate(label: label,
 */
 
 	  stage('Build Docker image') {
+	    println("2-Deploying target:  $env1")
 		container('docker') {
 		  docker.withRegistry("${dockerRegistry}", 'registry-credentials') {
-			sh "docker build -f Dockerfile -t ${image}:${tag} ."
+			sh "docker build -f Dockerfile -t ${image}:${tag} --build-arg TARGET=${env1} ."
 			sh "docker push ${image}:${tag}"
 			sh "docker tag ${image}:${tag} ${image}:latest"
 			sh "docker push ${image}:latest"
@@ -107,10 +111,9 @@ podTemplate(label: label,
 	  }
 */
 
-    def env1 = "dev"
     stage( "Deploy ${env1}" ) {
       container('argo-cd-tools') {
-        println("Deploying to ${argocdAppPrefix}")
+        println("Deploying to ${argocdAppPrefix} , Target: $target")
           dir("deployment-${env1}-${tag}") {
             withCredentials([usernamePassword(credentialsId: 'gitlab-auth', usernameVariable: 'username', passwordVariable: 'password')]) {
               sh "git config --global user.name 'jinbo heo'"
@@ -122,7 +125,7 @@ podTemplate(label: label,
             }
         }
     }  
-    
+   
     stage( "Approval before deploy to Production" ){
         input 'Deploy to Production?'
     }
@@ -142,7 +145,7 @@ podTemplate(label: label,
             }
         }
     }  
-
+    
 	 notifySuccessful()
 	  } catch(e) {
         currentBuild.result = "FAILED"

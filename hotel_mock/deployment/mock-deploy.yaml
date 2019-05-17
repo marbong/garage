@@ -1,0 +1,22 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: 'hotel-mock'
+  labels:
+    app: 'hotel-mock'
+spec:
+  selector:
+    matchLabels:
+      app: 'hotel-mock'
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: 'hotel-mock'
+    spec:
+      containers:
+      - name: 'hotel-mock'
+        image: devcluster.icp:8500/aib2b/hotel_mock:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080

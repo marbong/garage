@@ -15,8 +15,8 @@ podTemplate(label: label,
 	containers: [
 	  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
 	  containerTemplate(name: 'docker', image: 'docker:stable', ttyEnabled: true, command: 'cat'),
-	  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.0', command: 'cat', ttyEnabled: true)
-	  //containerTemplate(name: 'argo-cd-tools', image: 'argoproj/argo-cd-tools:latest', ttyEnabled: true, command: 'cat', args: '', envVars:[envVar(key: 'GIT_SSH_COMMAND', value: 'ssh -o StrictHostKeyChecking=no')] )
+	  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.0', command: 'cat', ttyEnabled: true),
+	  containerTemplate(name: 'argo-cd-tools', image: 'argoproj/argo-cd-tools:latest', ttyEnabled: true, command: 'cat', args: '', envVars:[envVar(key: 'GIT_SSH_COMMAND', value: 'ssh -o StrictHostKeyChecking=no')] )
 	],
 	volumes: [
 	    hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
@@ -50,6 +50,7 @@ podTemplate(label: label,
       def argocdAppPrefix = props['argocdAppPrefix']
       //def deployRepoUrl = '169.56.70.68:10080/aib2b-group/hotel_information_config.git'  //deploy
 	  def deployRepoUrl = props['deployRepoUrl']
+	  def env1 = "$target"
 
 	  stage('Build Maven project') {
 		container('maven') {
@@ -58,6 +59,7 @@ podTemplate(label: label,
 	  }
 /*
 	  stage('Inspection Code') {
+	    println("2-Deploying target:  $env1")
 		container('maven') {
 			sh "mvn -f pom.xml sonar:sonar \
 				  -Dsonar.projectKey=hotel_front \
@@ -77,7 +79,7 @@ podTemplate(label: label,
 		  }
 		}
 	  }
-
+/*
 	  stage( 'Clean Up Existing Deployments' ) {
 		container('kubectl') {
 		  withCredentials([[$class: 'UsernamePasswordMultiBinding',
@@ -104,39 +106,41 @@ podTemplate(label: label,
 		  }
 		}
 	  }
+*/
 
-/*
-    def env1 = "dev"
     stage( "Deploy ${env1}" ) {
       container('argo-cd-tools') {
         println("Deploying to ${argocdAppPrefix}")
           dir("deployment-${env1}-${tag}") {
-            withCredentials([usernamePassword(credentialsId: 'b2f23816-4503-4ead-a093-1d1452c2eeec', usernameVariable: 'username', passwordVariable: 'password')]) {
+            withCredentials([usernamePassword(credentialsId: 'gitlab-auth', usernameVariable: 'username', passwordVariable: 'password')]) {
               sh "git config --global user.name 'jinbo heo'"
               sh "git config --global user.email 'jinboheo@gmail.com'"
               sh "git config --global http.sslVerify false"
-              sh "git clone http://${deployRepoUrl}"
-              sh "cd \$(basename 'front-config') && cp ./templates/front-deploy.yaml ./${env1}/front-deploy.yaml && sed -i s%IMAGE_TAG_PLACEHOLDER%${tag}% ./${env1}/front-deploy.yaml && git add * && git commit -m 'update image for ${env1} for app commit ${tag}' && git push http://$username:$password@${deployRepoUrl} --all"
+              println("${deployRepoUrl}")
+              git credentialsId: 'gitlab-auth', url: "http://${deployRepoUrl}"
+              sh "cp ./templates/information-deploy.yaml ./${env1}/information-deploy.yaml && sed -i s%IMAGE_TAG_PLACEHOLDER%${tag}% ./${env1}/information-deploy.yaml && git add * && git commit -m 'update image for ${env1} for app commit ${tag}' && git push http://$username:$password@${deployRepoUrl} --all"
             }
             }
         }
     }
-
+/*
     stage( "Approval before deploy to Production" ){
         input 'Deploy to Production?'
     }
-
+*/
+/*
     def env2 = "prod"
     stage( "Deploy ${env2}" ) {
       container('argo-cd-tools') {
         println("Deploying to ${argocdAppPrefix}")
           dir("deployment-${env2}-${tag}") {
-            withCredentials([usernamePassword(credentialsId: 'b2f23816-4503-4ead-a093-1d1452c2eeec', usernameVariable: 'username', passwordVariable: 'password')]) {
+            withCredentials([usernamePassword(credentialsId: 'gitlab-auth', usernameVariable: 'username', passwordVariable: 'password')]) {
               sh "git config --global user.name 'jinbo heo'"
               sh "git config --global user.email 'jinboheo@gmail.com'"
               sh "git config --global http.sslVerify false"
-              sh "git clone http://${deployRepoUrl}"
-              sh "cd \$(basename 'front-config') && cp ./templates/front-deploy.yaml ./${env2}/front-deploy.yaml && sed -i s%IMAGE_TAG_PLACEHOLDER%${tag}% ./${env2}/front-deploy.yaml && git add * && git commit -m 'update image for ${env2} for app commit ${tag}' && git push http://$username:$password@${deployRepoUrl} --all"
+              println("${deployRepoUrl}")
+              git credentialsId: 'gitlab-auth', url: "http://${deployRepoUrl}"
+              sh "cp ./templates/information-deploy.yaml ./${env2}/information-deploy.yaml && sed -i s%IMAGE_TAG_PLACEHOLDER%${tag}% ./${env2}/information-deploy.yaml && git add * && git commit -m 'update image for ${env2} for app commit ${tag}' && git push http://$username:$password@${deployRepoUrl} --all"
             }
             }
         }

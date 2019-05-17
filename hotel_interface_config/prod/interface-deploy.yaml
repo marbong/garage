@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: 'hotel-interface'
-        image: devcluster.icp:8500/aib2b/hotel_interface:20190514-develop-18
+        image: devcluster.icp:8500/aib2b/hotel_interface:20190515-develop-1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

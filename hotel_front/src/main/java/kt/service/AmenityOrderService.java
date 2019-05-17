@@ -9,13 +9,29 @@ import kt.kafka.producer.Sender;
 import kt.repository.AmenityItemRepository;
 import kt.repository.AmenityOrderRepository;
 import kt.repository.RoomRepository;
+import org.apache.http.HttpConnection;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,6 +45,9 @@ public class AmenityOrderService {
     RoomRepository roomRepository;
     @Autowired
     Sender kafkaSender;
+    private RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    @Value("${app.targetName}")
+    String targetName;
 
     public Optional<AmenityOrder> getAmenityOrderListByItemName(String itemName){
         return amenityOrderRepository.findByAmenityItem(amenityItemRepository.findByName(itemName));
@@ -77,18 +96,40 @@ public class AmenityOrderService {
             amenityItemRepository.save(amenityItem);
         }
 
+        // dev env
         params.put("type","order");
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonStr = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(params);
-
         kafkaSender.send(jsonStr);
+        // istio env
+//        try {
+//            params.put("type","order");
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            String jsonStr = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(params);
+//
+//            HttpClient httpClient = HttpClientBuilder.create().build();
+//            HttpPost httpPost = new HttpPost("http://10.1.178.198:80/internal/api/pms/call");
+//            httpPost.setEntity(new StringEntity(jsonStr));
+//            HttpResponse httpResponse = null;
+//            httpResponse = httpClient.execute(httpPost);
+//
+//            if (httpResponse.getStatusLine().getStatusCode() == 200) {
+//                ResponseHandler<String> handler = new BasicResponseHandler();
+//                String body = handler.handleResponse(httpResponse);
+//                System.out.println(body);
+//            } else {
+//                System.out.println("response is error : " + httpResponse.getStatusLine().getStatusCode());
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         AmenityOrder amenityOrder = AmenityOrder.builder().build();
         amenityOrder.setRoom(room);
         amenityOrder.setAmenityItem(amenityItem);
         amenityOrder.setCount(count);
         amenityOrder.setStatus("processing");
-        amenityOrder.setReq_time(LocalDateTime.now());
+        amenityOrder.setReq_time(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
 
         return amenityOrderRepository.save(amenityOrder).toString();
     }

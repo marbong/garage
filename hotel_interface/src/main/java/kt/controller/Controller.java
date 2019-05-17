@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import kt.kafka.producer.Sender;
+//import kt.kafka.producer.Sender;
 import kt.service.MyService;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,8 +23,8 @@ public class Controller {
 
 	@Autowired
     private MyService myService;
-	@Autowired
-	private Sender kafkaSender;
+	//@Autowired
+	//private Sender kafkaSender;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
     public String Hello(){
@@ -40,7 +40,7 @@ public class Controller {
     public String reqSvc(@RequestBody String body , HttpServletRequest request){
         LOG.info("'{}' sending message='{}' ", body ,request.getRequestURI());
 
-		kafkaSender.send(body);
+		//kafkaSender.send(body);
        return "Kafka send complete  " + request.getRequestURI();
     }
 }

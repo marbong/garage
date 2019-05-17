@@ -25,7 +25,7 @@ public class Sender {
     public void send(String message){
         LOG.info("sending message ='{}' to topic ='{}'", message, topic);
         //kafkaTemplate.send(topic, message);
-        
+
         ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, message);
         future.addCallback(
                 new ListenableFutureCallback<SendResult<String, String>>() {
@@ -42,6 +42,6 @@ public class Sender {
                     }
                 }
             );
-        
+
     }
 }

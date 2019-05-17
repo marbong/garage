@@ -1,3 +1,4 @@
+/*
 package kt.kafka.consmer;
 
 import org.slf4j.Logger;
@@ -32,3 +33,4 @@ public class Receiver {
         kafkaSender.send(rtnMsg);
     }
 }
+*/

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Service;
 public class MyService {
 
 	public String getName() {
-		return "AI_B2B Awesome hotel ";
+		return "AI_B2B Awesome hotel";
 	}
 }

@@ -52,8 +52,10 @@ podTemplate(label: label,
       props['deployRepoUrl']
       //def deployRepoUrl = '169.56.70.68:10080/aib2b-group/hotel_interface_config.git'  //deploy
 	  def deployRepoUrl = props['deployRepoUrl']
+	  def env1 = "$target"
 	    
 	  stage('Build Maven project') {
+	  	println("2-Deploying target:  $env1")
 		container('maven') {
 			sh "mvn -f pom.xml -B clean package -Dmaven.test.skip=true"
 		}
@@ -109,7 +111,7 @@ podTemplate(label: label,
 */
 
 
-    def env1 = "dev"
+    //def env1 = "dev"
     stage( "Deploy ${env1}" ) {
       container('argo-cd-tools') {
         println("Deploying to ${argocdAppPrefix}")
@@ -124,7 +126,7 @@ podTemplate(label: label,
             }
         }
     }  
-    
+    /*
     stage( "Approval before deploy to Production" ){
         input 'Deploy to Production?'
     }
@@ -144,7 +146,7 @@ podTemplate(label: label,
             }
         }
     }  
-    
+    */
 	 //notifySuccessful()
 	  } catch(e) {
         currentBuild.result = "FAILED"

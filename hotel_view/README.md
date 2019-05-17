@@ -1,17 +1,28 @@
-# hotel-view
+# aib2b-frontend
 
-## nginx 사용 시 수동 빌드/배포 방법
+## Project setup
 ```
-sudo npm install -g @vue/cli
-sudo npm install
-sudo npm run build
-cp -R ./dist/* /{nginx 경로}
+yarn install
 ```
 
-### 도커 사용 시 배포 방법
+### Compiles and hot-reloads for development
 ```
-docker build -t {이미지이름}:{버전}.
-docker run -it -p 80:80 --rm --name hotel-front {이미지이름}:{버전}
+yarn run serve
+```
+
+### Compiles and minifies for production
+```
+yarn run build
+```
+
+### Run your tests
+```
+yarn run test
+```
+
+### Lints and fixes files
+```
+yarn run lint
 ```
 
 ### Customize configuration

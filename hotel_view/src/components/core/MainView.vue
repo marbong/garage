@@ -13,7 +13,7 @@
 export default {
   metaInfo () {
     return {
-      title: 'Awesome AI Hotel'
+      title: 'Awesome AI Hotel(Kong)'
     }
   }
 }

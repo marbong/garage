@@ -2,7 +2,6 @@ package kt.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import kt.service.RedisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import kt.kafka.producer.Sender;
 import kt.service.MyService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,9 +25,12 @@ public class Controller {
     private MyService myService;
 	@Autowired
 	private Sender kafkaSender;
+    @Value("${app.targetName}")
+    String target;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
     public String Hello(){
+	    System.out.println(target);
         return "hello AI " + myService.getName();
     }
 	@RequestMapping(value ="/list", method = RequestMethod.GET)

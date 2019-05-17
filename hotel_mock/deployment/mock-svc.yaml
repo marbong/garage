@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: 'hotel-mock'
+  labels:
+    app: 'hotel-mock'
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 31339
+  selector:
+    app: 'hotel-mock'

@@ -31,6 +31,7 @@ public class RoomService {
     }
 
     public Room updateRoom(int roomNo, Room room) {
+        room.setId(roomRepository.findByNumber(roomNo).getId());
         return roomRepository.save(room);
     }
 

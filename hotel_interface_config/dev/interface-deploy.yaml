@@ -11,12 +11,14 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        traffic.sidecar.istio.io/excludeOutboundIPRanges: 0.0.0.0/0
       labels:
         app: 'hotel-interface'
     spec:
       containers:
       - name: 'hotel-interface'
-        image: devcluster.icp:8500/aib2b/hotel_interface:20190514-develop-18
+        image: devcluster.icp:8500/aib2b/hotel_interface:20190516-develop-7
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

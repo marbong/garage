@@ -8,7 +8,8 @@ logging:
 # Database
 spring:
  datasource:
-  url: jdbc:postgresql://169.56.70.78:30432/aib2b
+  #url: jdbc:postgresql://169.56.70.78:30432/aib2b
+  url: jdbc:postgresql://postgresql:5432/aib2b
   username: aib2b
   password: aib2b
  jpa:

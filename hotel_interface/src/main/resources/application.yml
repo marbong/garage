@@ -4,11 +4,23 @@ logging:
    springframework: DEBUG
 
 # Database
+# Database
 spring:
  datasource:
-  url: jdbc:postgresql://169.56.70.78:30432/aib2b
+#  url: jdbc:postgresql://169.56.70.78:30432/aib2b
+  url: jdbc:postgresql://postgresql:5432/aib2b
   username: aib2b
   password: aib2b
+ jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect  
+
  # Redis
  redis:
   host: 169.56.70.78

@@ -1,3 +1,4 @@
+/*
 package kt.kafka.producer;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -39,4 +40,4 @@ public class SenderConfig {
     }
 
 }
-
+*/

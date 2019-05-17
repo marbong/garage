@@ -1,3 +1,4 @@
+/*
 package kt.kafka.producer;
 
 import org.slf4j.Logger;
@@ -24,3 +25,4 @@ public class Sender {
         kafkaTemplate.send(topic, message);
     }
 }
+*/

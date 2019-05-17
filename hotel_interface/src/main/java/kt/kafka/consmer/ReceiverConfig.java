@@ -1,3 +1,4 @@
+/*
 package kt.kafka.consmer;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -48,3 +49,4 @@ public class ReceiverConfig {
     }
 
 }
+*/
